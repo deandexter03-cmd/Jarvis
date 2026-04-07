@@ -45,7 +45,7 @@ A local-first AI assistant with a futuristic HUD, powered by Ollama. Features in
 4. When done, **double-click `run.bat`**
 
 ### Step 5: Pull the AI Model
-Open a Command Prompt and type: ollama pull qwen3:1.7b
+Open a Command Prompt and type: `ollama pull qwen3:1.7b`
 This downloads the AI brain (about 1GB). Takes 2-3 minutes.
 
 ### Step 6: Start JARVIS
