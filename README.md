@@ -1,81 +1,48 @@
 # J.A.R.V.I.S - Enhanced AI Assistant
 
-**J**ust **A** **R**ather **V**ery **I**ntelligent **S**ystem
+**J**ust **A**strong **R**ather **V**ery **I**ntelligent **S**ystem
 
 A local-first AI assistant with a futuristic HUD, powered by Ollama. Features include voice control, document Q&A, web search, reminders, code execution, and system monitoring.
 
-## Features
+---
 
-- **Voice Control** - Browser-based speech recognition (click & speak)
-- **Iron Man Style HUD** - Real-time system stats, animated arc reactor
-- **Local AI** - Powered by Ollama (runs completely offline)
-- **Document Q&A** - Index and search your local files
-- **Web Search** - DuckDuckGo integration (no API key needed)
-- **Smart Reminders** - Schedule tasks and get notified
-- **Code Execution** - Run Python code directly
-- **Memory System** - Remembers facts about you
-- **Screenshot Tool** - Capture and save screenshots
-- **System Monitoring** - CPU, RAM, Battery, Disk usage
+## 📦 What You Need Before Starting
 
-## Quick Start
+| Requirement | How to Get It |
+|-------------|---------------|
+| **Windows 10/11** | You already have this |
+| **Python 3.10 or higher** | Download from [python.org](https://python.org) |
+| **Ollama** | Download from [ollama.com](https://ollama.com) |
+| **Internet connection** | Only for first-time setup |
 
-### 1. Install Python dependencies
+---
 
-`pip install speechrecognition edge-tts pygame pyautogui pygetwindow psutil requests flask flask-cors beautifulsoup4 lxml`
+## 🚀 Complete Installation Guide (10 Minutes)
 
-### 2. Install and run Ollama
+### Step 1: Install Python
+1. Go to https://python.org/downloads
+2. Click the yellow "Download Python" button
+3. Run the installer
+4. **IMPORTANT**: Check "Add Python to PATH" at the bottom
+5. Click "Install Now"
 
-Download from https://ollama.com
+### Step 2: Install Ollama
+1. Go to https://ollama.com/download
+2. Click "Download for Windows"
+3. Run the installer
+4. After installation, Ollama will start in system tray
 
-Then run:
+### Step 3: Download JARVIS
+**Option A (Easy):** Click the green "Code" button → "Download ZIP" → Extract folder
 
-`ollama pull qwen3:1.7b`
+**Option B (Git users):** 
+`git clone https://github.com/deandexter03-cmd/Jarvis.git`
 
-`ollama serve`
+### Step 4: Run the Setup (One Click!)
+1. Open the JARVIS folder
+2. **Double-click `setup.bat`** (I'll provide this file)
+3. Wait for everything to install automatically
+4. When done, **double-click `run.bat`**
 
-### 3. Run JARVIS
-
-`python jarvis.py`
-
-The HUD will automatically open in your browser.
-
-## How to Use
-
-Click the blue microphone button in the HUD and speak commands like:
-
-- "open chrome"
-- "battery status"
-- "system status"
-- "take screenshot"
-- "search for latest news"
-- "tell me a joke"
-- "remember that I like coffee"
-- "what do you remember"
-
-## Project Structure
-
-- jarvis.py - Main application
-- jarvis_hud.html - Web interface
-- requirements.txt - Dependencies
-- README.md - This file
-- LICENSE - MIT License
-
-## Troubleshooting
-
-**Ollama not responding**: Make sure Ollama is running with `ollama serve`
-
-**Port 5050 already in use**: Change line 85 in jarvis.py to a different port like 5051
-
-**Microphone not working**: Click "Allow" when browser asks for mic access. Try Chrome or Edge browser.
-
-## License
-
-MIT License - Free for personal and commercial use
-
-## Credits
-
-- OpenJarvis (Stanford) - Advanced features inspiration
-- Ollama - Local AI inference
-- Edge TTS - Voice synthesis
-
-Made with by Dean Dexter
+### Step 5: Pull the AI Model
+Open a Command Prompt and type:
