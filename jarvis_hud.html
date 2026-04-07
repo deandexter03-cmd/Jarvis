@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>J.A.R.V.I.S - Enhanced Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;overflow:hidden;width:100vw;height:100vh}
+
+/* ── BOOT SCREEN ── */
+#boot{
+  position:fixed;inset:0;
+  background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:999;
+  font-family:'Share Tech Mono',monospace;
+}
+
+#boot-reactor{position:relative;width:180px;height:180px;margin-bottom:32px}
+.br-ring{position:absolute;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);border-style:solid}
+.br-ring:nth-child(1){width:180px;height:180px;border-width:1px;border-color:rgba(30,180,255,0.15);animation:brSpin 12s linear infinite}
+.br-ring:nth-child(2){width:148px;height:148px;border-width:1px;border-color:rgba(30,180,255,0.25);animation:brSpin 8s linear infinite reverse}
+.br-ring:nth-child(3){width:116px;height:116px;border-width:1px;border-color:rgba(30,180,255,0.4);animation:brSpin 5s linear infinite}
+.br-ring:nth-child(4){width:86px;height:86px;border-width:2px;border-color:#1a9fff;animation:brSpin 3s linear infinite reverse;box-shadow:0 0 12px rgba(30,180,255,0.5)}
+.br-tris{position:absolute;inset:0;animation:brSpin 6s linear infinite}
+.br-tri{position:absolute;top:50%;left:50%;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:14px solid rgba(212,175,55,0.6)}
+.br-tri:nth-child(1){transform:translate(-50%,-50%) rotate(0deg) translateY(-52px)}
+.br-tri:nth-child(2){transform:translate(-50%,-50%) rotate(90deg) translateY(-52px)}
+.br-tri:nth-child(3){transform:translate(-50%,-50%) rotate(180deg) translateY(-52px)}
+.br-tri:nth-child(4){transform:translate(-50%,-50%) rotate(270deg) translateY(-52px)}
+.br-core{position:absolute;inset:62px;border-radius:50%;background:radial-gradient(circle,#fff 0%,#87ceeb 20%,#1a9fff 50%,#003080 100%);box-shadow:0 0 20px rgba(30,180,255,0.9),0 0 40px rgba(30,180,255,0.4);animation:brPulse 1.5s ease-in-out infinite}
+@keyframes brSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes brPulse{0%,100%{box-shadow:0 0 20px rgba(30,180,255,0.9),0 0 40px rgba(30,180,255,0.4)}50%{box-shadow:0 0 40px rgba(30,180,255,1),0 0 80px rgba(30,180,255,0.6),0 0 120px rgba(30,180,255,0.2)}}
+
+.br-burst{position:absolute;border-radius:50%;border:2px solid rgba(30,180,255,0.8);top:50%;left:50%;transform:translate(-50%,-50%) scale(0.4);animation:burst 0.8s ease-out forwards;pointer-events:none}
+@keyframes burst{0%{transform:translate(-50%,-50%) scale(0.4);opacity:1}100%{transform:translate(-50%,-50%) scale(2.5);opacity:0}}
+
+#boot-title{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:700;color:#1a9fff;letter-spacing:10px;text-shadow:0 0 20px rgba(30,180,255,0.8);margin-bottom:6px;opacity:0;animation:fadeIn 0.5s 0.5s forwards}
+#boot-sub{font-size:10px;letter-spacing:5px;color:rgba(30,180,255,0.4);margin-bottom:32px;opacity:0;animation:fadeIn 0.5s 0.8s forwards}
+@keyframes fadeIn{to{opacity:1}}
+
+#boot-log{width:380px;text-align:left}
+.boot-line{font-size:11px;letter-spacing:1px;padding:3px 0;opacity:0;transform:translateX(-8px);transition:all 0.3s ease}
+.boot-line.show{opacity:1;transform:translateX(0)}
+.boot-line.ok{color:#2ecc71}.boot-line.warn{color:#e8a020}.boot-line.info{color:rgba(30,180,255,0.7)}.boot-line.title{color:#1a9fff;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;margin-top:8px}
+
+#boot-bar-wrap{width:380px;margin-top:20px;opacity:0;animation:fadeIn 0.3s 1s forwards}
+#boot-bar-track{height:3px;background:rgba(30,180,255,0.1);border:1px solid rgba(30,180,255,0.2);border-radius:2px;overflow:hidden}
+#boot-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#003080,#1a9fff);box-shadow:0 0 8px rgba(30,180,255,0.6);transition:width 0.2s ease;border-radius:2px}
+#boot-pct{font-size:10px;color:#1a9fff;text-align:right;margin-top:5px;letter-spacing:2px}
+
+/* flash */
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:1000;transition:opacity 0.15s}
+
+/* ── MAIN HUD ── */
+#hud{
+  font-family:'Share Tech Mono',monospace;
+  background:#060e18;
+  color:#a8d8f0;
+  width:100vw;height:100vh;
+  border:none;
+  overflow:hidden;
+  position:relative;
+  padding:16px;
+  display:none;
+  grid-template-columns:190px 1fr 190px;
+  grid-template-rows:auto 1fr auto;
+  gap:10px;
+  opacity:0;
+  transform:scale(0.96);
+  transition:opacity 0.6s ease,transform 0.6s ease;
+}
+#hud.visible{opacity:1;transform:scale(1)}
+#hud::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,20,40,0.15) 3px,rgba(0,20,40,0.15) 4px);pointer-events:none}
+#hud>*{position:relative;z-index:1}
+
+:root{--gold:#e8a020;--blue:#1a9fff;--border:rgba(30,180,255,0.25);--glow-blue:0 0 8px rgba(30,180,255,0.4);--glow-gold:0 0 8px rgba(232,160,32,0.5)}
+
+#topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:10px}
+.hud-title{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:var(--gold);letter-spacing:4px;text-shadow:var(--glow-gold)}
+.hud-subtitle{font-size:10px;color:rgba(168,216,240,0.5);letter-spacing:3px;margin-top:2px}
+#clock{font-family:'Orbitron',sans-serif;font-size:20px;color:var(--blue);text-shadow:var(--glow-blue);letter-spacing:2px}
+#date-display{font-size:10px;color:rgba(168,216,240,0.5);text-align:right;margin-top:2px;letter-spacing:2px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#2ecc71;box-shadow:0 0 6px #2ecc71;display:inline-block;animation:sdpulse 2s ease-in-out infinite}
+@keyframes sdpulse{0%,100%{opacity:1}50%{opacity:0.4}}
+#mode-tag{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;padding:3px 8px;border-radius:4px;background:rgba(30,180,255,0.1);border:1px solid rgba(30,180,255,0.3);color:var(--blue)}
+.panel{background:rgba(10,30,55,0.7);border:1px solid var(--border);border-radius:8px;padding:12px}
+.panel-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--gold);text-shadow:var(--glow-gold);margin-bottom:10px;border-bottom:1px solid rgba(232,160,32,0.2);padding-bottom:6px}
+#left-panel{grid-column:1;grid-row:2}
+.stat-row{margin-bottom:12px}
+.stat-name{font-size:9px;letter-spacing:2px;color:rgba(168,216,240,0.6);margin-bottom:4px}
+.stat-value{font-size:16px;color:#fff;font-family:'Orbitron',sans-serif}
+.stat-value span{font-size:10px;color:rgba(168,216,240,0.5)}
+.bar-track{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width 0.8s ease}
+.bar-blue{background:var(--blue);box-shadow:0 0 4px var(--blue)}
+.bar-gold{background:var(--gold);box-shadow:0 0 4px var(--gold)}
+.bar-green{background:#2ecc71;box-shadow:0 0 4px #2ecc71}
+.bar-red{background:#e74c3c;box-shadow:0 0 4px #e74c3c}
+#center-panel{grid-column:2;grid-row:2;display:flex;flex-direction:column;gap:10px}
+#arc-reactor-wrap{display:flex;align-items:center;justify-content:center;padding:8px 0}
+#arc-reactor{position:relative;width:100px;height:100px}
+.ring{position:absolute;border-radius:50%;border:1px solid var(--blue);box-shadow:0 0 6px rgba(30,180,255,0.3);top:50%;left:50%;transform:translate(-50%,-50%);animation:spin linear infinite}
+.ring:nth-child(1){width:100px;height:100px;animation-duration:8s;border-style:dashed;opacity:0.4}
+.ring:nth-child(2){width:78px;height:78px;animation-duration:5s;animation-direction:reverse;border-color:var(--gold);box-shadow:0 0 6px rgba(232,160,32,0.3)}
+.ring:nth-child(3){width:58px;height:58px;animation-duration:3s}
+.arc-core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,#a0d8ff 0%,#1a9fff 40%,#0050aa 100%);box-shadow:0 0 20px rgba(30,180,255,0.8),0 0 40px rgba(30,180,255,0.3);animation:corePulse 2s ease-in-out infinite}
+@keyframes spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes corePulse{0%,100%{box-shadow:0 0 20px rgba(30,180,255,0.8),0 0 40px rgba(30,180,255,0.3)}50%{box-shadow:0 0 30px rgba(30,180,255,1),0 0 60px rgba(30,180,255,0.5)}}
+#jarvis-output{background:rgba(5,20,40,0.8);border:1px solid var(--border);border-radius:8px;padding:12px;min-height:80px;flex:1}
+.output-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--gold);margin-bottom:8px}
+#jarvis-text{font-size:13px;color:#d0eeff;line-height:1.6;min-height:48px}
+#waveform-wrap{background:rgba(5,20,40,0.8);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px}
+.wave-label{font-size:9px;letter-spacing:2px;color:rgba(168,216,240,0.5);white-space:nowrap}
+#waveform{display:flex;align-items:center;gap:3px;flex:1;height:36px}
+.wave-bar{flex:1;border-radius:2px;background:var(--blue);box-shadow:0 0 4px rgba(30,180,255,0.5);transition:height 0.1s ease;min-height:3px}
+#right-panel{grid-column:3;grid-row:2}
+.btn-cmd{width:100%;background:rgba(10,30,55,0.8);border:1px solid rgba(30,180,255,0.3);border-radius:6px;color:#a8d8f0;font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 10px;text-align:left;cursor:pointer;margin-bottom:6px;letter-spacing:1px;transition:all 0.2s;display:flex;align-items:center;gap:8px}
+.btn-cmd:hover{background:rgba(30,180,255,0.12);border-color:var(--blue);color:#fff;box-shadow:var(--glow-blue)}
+.btn-cmd:active{transform:scale(0.97)}
+.btn-icon{font-size:14px;width:18px;text-align:center}
+#bottombar{grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;display:flex;align-items:center;gap:10px}
+#input-area{display:flex;flex:1;gap:8px;align-items:center}
+#cmd-input{flex:1;background:rgba(5,20,40,0.9);border:1px solid rgba(30,180,255,0.3);border-radius:6px;color:#d0eeff;font-family:'Share Tech Mono',monospace;font-size:12px;padding:8px 12px;outline:none;letter-spacing:1px}
+#cmd-input:focus{border-color:var(--blue);box-shadow:var(--glow-blue)}
+#cmd-input::placeholder{color:rgba(168,216,240,0.3)}
+#send-btn{background:rgba(30,180,255,0.15);border:1px solid var(--blue);border-radius:6px;color:var(--blue);font-family:'Orbitron',monospace;font-size:10px;padding:8px 14px;cursor:pointer;letter-spacing:2px;transition:all 0.2s}
+#send-btn:hover{background:rgba(30,180,255,0.3);box-shadow:var(--glow-blue);color:#fff}
+
+/* NEW - Browser Mic Button */
+#browser-mic-btn{background:rgba(30,180,255,0.15);border:1px solid var(--blue);border-radius:6px;color:var(--blue);font-size:16px;padding:6px 12px;cursor:pointer;transition:all 0.2s}
+#browser-mic-btn:hover{background:rgba(30,180,255,0.3);box-shadow:var(--glow-blue);transform:scale(1.02)}
+#browser-mic-btn.listening{animation:sdpulse 0.8s ease-in-out infinite;box-shadow:0 0 12px rgba(30,180,255,0.8);background:rgba(30,180,255,0.3)}
+
+#mic-btn{background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.4);border-radius:6px;color:#2ecc71;font-size:16px;padding:6px 12px;cursor:pointer;transition:all 0.2s}
+#mic-btn.listening{animation:sdpulse 0.8s ease-in-out infinite;box-shadow:0 0 12px rgba(46,204,113,0.6)}
+#listen-indicator{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:2px;color:rgba(168,216,240,0.4);transition:all 0.3s}
+#listen-indicator.active{color:#2ecc71;text-shadow:0 0 8px #2ecc71}
+#listen-ring{width:10px;height:10px;border-radius:50%;border:1px solid rgba(168,216,240,0.3);transition:all 0.3s}
+#listen-indicator.active #listen-ring{border-color:#2ecc71;box-shadow:0 0 8px #2ecc71;animation:sdpulse 0.8s ease-in-out infinite}
+.corner{position:absolute;width:20px;height:20px;border-color:var(--gold);border-style:solid;opacity:0.5;z-index:2}
+.corner-tl{top:8px;left:8px;border-width:2px 0 0 2px;border-radius:4px 0 0 0}
+.corner-tr{top:8px;right:8px;border-width:2px 2px 0 0;border-radius:0 4px 0 0}
+.corner-bl{bottom:8px;left:8px;border-width:0 0 2px 2px;border-radius:0 0 0 4px}
+.corner-br{bottom:8px;right:8px;border-width:0 2px 2px 0;border-radius:0 0 4px 0}
+</style>
+</head>
+<body>
+
+<div id="flash"></div>
+
+<!-- BOOT SCREEN -->
+<div id="boot">
+  <div id="boot-reactor">
+    <div class="br-ring"></div>
+    <div class="br-ring"></div>
+    <div class="br-ring"></div>
+    <div class="br-ring"></div>
+    <div class="br-tris">
+      <div class="br-tri"></div><div class="br-tri"></div>
+      <div class="br-tri"></div><div class="br-tri"></div>
+    </div>
+    <div class="br-core"></div>
+  </div>
+  <div id="boot-title">J.A.R.V.I.S</div>
+  <div id="boot-sub">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+  <div id="boot-log">
+    <div class="boot-line title" id="bl0">// STARK INDUSTRIES BOOT SEQUENCE v5.0</div>
+    <div class="boot-line info"  id="bl1">[ INIT ] Arc reactor power... connecting</div>
+    <div class="boot-line ok"    id="bl2">[ OK   ] Arc reactor online — 3.00 GW</div>
+    <div class="boot-line info"  id="bl3">[ INIT ] Neural network loading...</div>
+    <div class="boot-line ok"    id="bl4">[ OK   ] QWEN3-1.7B model loaded</div>
+    <div class="boot-line info"  id="bl5">[ INIT ] Ollama API handshake...</div>
+    <div class="boot-line ok"    id="bl6">[ OK   ] localhost:11434 connected</div>
+    <div class="boot-line info"  id="bl7">[ INIT ] Voice synthesis module...</div>
+    <div class="boot-line ok"    id="bl8">[ OK   ] en-GB-RyanNeural ready</div>
+    <div class="boot-line info"  id="bl9">[ INIT ] Browser speech engine...</div>
+    <div class="boot-line ok"    id="bl10">[ OK   ] Web Speech API ready</div>
+    <div class="boot-line info"  id="bl11">[ INIT ] HUD rendering pipeline...</div>
+    <div class="boot-line ok"    id="bl12">[ OK   ] Display systems nominal</div>
+    <div class="boot-line info"  id="bl13">[ INIT ] Enhanced features loading...</div>
+    <div class="boot-line ok"    id="bl14">[ OK   ] Document Q&A | Web Search | Email | Code Execution</div>
+    <div class="boot-line title" id="bl15">// JARVIS ENHANCED EDITION ONLINE — GOOD EVENING, SIR</div>
+  </div>
+  <div id="boot-bar-wrap">
+    <div id="boot-bar-track"><div id="boot-bar-fill"></div></div>
+    <div id="boot-pct">0%</div>
+  </div>
+</div>
+
+<!-- MAIN HUD -->
+<div id="hud">
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <div id="topbar">
+    <div>
+      <div class="hud-title">J.A.R.V.I.S</div>
+      <div class="hud-subtitle">ENHANCED EDITION v5.0</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="status-dot"></span>
+      <span id="mode-tag">ONLINE</span>
+      <div id="listen-indicator">
+        <div id="listen-ring"></div>
+        <span id="listen-text">STANDBY</span>
+      </div>
+    </div>
+    <div>
+      <div id="clock">00:00:00</div>
+      <div id="date-display">---</div>
+    </div>
+  </div>
+
+  <div class="panel" id="left-panel">
+    <div class="panel-label">SYS STATUS</div>
+    <div class="stat-row">
+      <div class="stat-name">CPU</div>
+      <div class="stat-value"><span id="cpu-val">--</span><span>%</span></div>
+      <div class="bar-track"><div class="bar-fill bar-blue" id="cpu-bar" style="width:0%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-name">MEMORY</div>
+      <div class="stat-value"><span id="ram-val">--</span><span>%</span></div>
+      <div class="bar-track"><div class="bar-fill bar-gold" id="ram-bar" style="width:0%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-name">BATTERY</div>
+      <div class="stat-value"><span id="bat-val">--</span><span>%</span></div>
+      <div class="bar-track"><div class="bar-fill bar-green" id="bat-bar" style="width:0%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-name">UPTIME</div>
+      <div class="stat-value" id="uptime-val" style="font-size:13px">00:00:00</div>
+    </div>
+    <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:10px">
+      <div class="panel-label">NETWORK</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+        <div id="ollama-dot" style="width:8px;height:8px;border-radius:50%;background:#555"></div>
+        <span id="ollama-status" style="font-size:10px;color:rgba(168,216,240,0.6)">CHECKING...</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="center-panel">
+    <div class="panel" style="display:flex;align-items:center;gap:20px;padding:12px 16px">
+      <div id="arc-reactor-wrap">
+        <div id="arc-reactor">
+          <div class="ring"></div>
+          <div class="ring"></div>
+          <div class="ring"></div>
+          <div class="arc-core"></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold);letter-spacing:3px;margin-bottom:4px">ARC REACTOR</div>
+        <div style="font-size:10px;color:rgba(168,216,240,0.5);margin-bottom:4px;letter-spacing:1px">MODEL: QWEN3-1.7B LOCAL</div>
+        <div style="font-size:10px;color:rgba(168,216,240,0.5);letter-spacing:1px">ENDPOINT: LOCALHOST:11434</div>
+      </div>
+    </div>
+    <div id="jarvis-output">
+      <div class="output-label">JARVIS OUTPUT</div>
+      <div id="jarvis-text">Good day, sir. Enhanced edition online. Document Q&A, web search, email, and code execution ready. How may I assist you?</div>
+    </div>
+    <div id="waveform-wrap">
+      <div class="wave-label">AUDIO</div>
+      <div id="waveform"></div>
+      <div class="wave-label" id="wave-state">IDLE</div>
+    </div>
+  </div>
+
+  <div class="panel" id="right-panel">
+    <div class="panel-label">COMMANDS</div>
+    <button class="btn-cmd" onclick="sendCmd('open chrome')"><span class="btn-icon">⬡</span>CHROME</button>
+    <button class="btn-cmd" onclick="sendCmd('open youtube')"><span class="btn-icon">▶</span>YOUTUBE</button>
+    <button class="btn-cmd" onclick="sendCmd('open github')"><span class="btn-icon">⌥</span>GITHUB</button>
+    <button class="btn-cmd" onclick="sendCmd('battery status')"><span class="btn-icon">⚡</span>BATTERY</button>
+    <button class="btn-cmd" onclick="sendCmd('system status')"><span class="btn-icon">◈</span>SYS STATUS</button>
+    <button class="btn-cmd" onclick="sendCmd('take screenshot')"><span class="btn-icon">◉</span>SCREENSHOT</button>
+    <button class="btn-cmd" onclick="sendCmd('search for latest news')"><span class="btn-icon">🌐</span>WEB SEARCH</button>
+    <button class="btn-cmd" onclick="sendCmd('tell me a joke')"><span class="btn-icon">◇</span>JOKE</button>
+  </div>
+
+  <div id="bottombar">
+    <div id="input-area">
+      <button id="browser-mic-btn" title="Browser Speech Recognition (Click & Speak)">🎙️</button>
+      <button id="mic-btn" title="Python Voice (Experimental)">🎤</button>
+      <input id="cmd-input" type="text" placeholder="TYPE COMMAND OR USE 🎙️ MIC, SIR..." autocomplete="off"/>
+      <button id="send-btn" onclick="submitCmd()">ENGAGE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==============================================
+// JARVIS ENHANCED EDITION v5.0
+// Features: Browser Speech Recognition + Flask Bridge
+// ==============================================
+
+const FLASK_URL = 'http://localhost:5050';
+
+// ── BOOT SEQUENCE ──
+const bootDelays=[300,600,900,1100,1400,1600,1900,2100,2400,2600,2900,3100,3400,3600,3800,4100];
+const bootPcts=  [5,  10, 20, 28,  40,  48,  60,  65,  75,  80,  87,  90,  93,  95,  97,  100];
+
+bootDelays.forEach((delay,i)=>{
+  setTimeout(()=>{
+    const el = document.getElementById('bl'+i);
+    if(el) el.classList.add('show');
+    document.getElementById('boot-bar-fill').style.width=bootPcts[i]+'%';
+    document.getElementById('boot-pct').textContent=bootPcts[i]+'%';
+  },delay);
+});
+
+// Energy bursts
+setTimeout(()=>{
+  for(let i=0;i<5;i++){
+    setTimeout(()=>{
+      const burst=document.createElement('div');
+      burst.className='br-burst';
+      burst.style.width=burst.style.height=(60+i*30)+'px';
+      const reactor = document.getElementById('boot-reactor');
+      if(reactor) reactor.appendChild(burst);
+      setTimeout(()=>burst.remove(),900);
+    },i*100);
+  }
+},4400);
+
+// Flash and reveal HUD
+setTimeout(()=>{
+  const flash=document.getElementById('flash');
+  flash.style.opacity='1';
+  setTimeout(()=>{
+    flash.style.transition='opacity 0.4s';
+    flash.style.opacity='0';
+    const boot = document.getElementById('boot');
+    if(boot) boot.style.display='none';
+    const hud=document.getElementById('hud');
+    hud.style.display='grid';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      hud.classList.add('visible');
+      initHUD();
+    }));
+  },180);
+},4800);
+
+// ── HUD INITIALIZATION ──
+function initHUD(){
+  const wf=document.getElementById('waveform');
+  if(wf){
+    for(let i=0;i<28;i++){
+      const b=document.createElement('div');
+      b.className='wave-bar';
+      b.style.height='3px';
+      wf.appendChild(b);
+    }
+  }
+  updateClock();
+  setInterval(updateClock,1000);
+  updateStats();
+  setInterval(updateStats,3000);
+  checkFlaskBridge();
+  setInterval(checkFlaskBridge,10000);
+  pollChatHistory();
+  setInterval(pollChatHistory, 2000);
+  
+  let up=0;
+  setInterval(()=>{
+    up++;
+    const uptimeEl = document.getElementById('uptime-val');
+    if(uptimeEl){
+      uptimeEl.textContent=[Math.floor(up/3600),Math.floor((up%3600)/60),up%60].map(x=>String(x).padStart(2,'0')).join(':');
+    }
+  },1000);
+  
+  // Initialize browser speech recognition
+  initBrowserSpeech();
+}
+
+// ── WAVEFORM ANIMATION ──
+let waveInterval=null;
+
+function animateWave(active){
+  clearInterval(waveInterval);
+  const bars=document.querySelectorAll('.wave-bar');
+  const waveState = document.getElementById('wave-state');
+  if(waveState) waveState.textContent=active?'SPEAKING':'IDLE';
+  if(active){
+    waveInterval=setInterval(()=>{
+      bars.forEach(b=>b.style.height=(Math.floor(Math.random()*30)+3)+'px');
+    },80);
+  } else {
+    bars.forEach(b=>b.style.height='3px');
+  }
+}
+
+function setListening(on){
+  const ind=document.getElementById('listen-indicator');
+  if(ind) ind.classList.toggle('active',on);
+  const listenText = document.getElementById('listen-text');
+  if(listenText) listenText.textContent=on?'LISTENING':'STANDBY';
+}
+
+function setJarvisText(text){
+  const el=document.getElementById('jarvis-text');
+  if(!el) return;
+  el.textContent='';
+  animateWave(true);
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i < text.length){
+      el.textContent+=text[i];
+      i++;
+    } else {
+      clearInterval(iv);
+      setTimeout(()=>animateWave(false),500);
+    }
+  },18);
+}
+
+// ── FLASK BRIDGE COMMUNICATION ──
+async function sendToFlask(command){
+  try{
+    const response = await fetch(`${FLASK_URL}/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: command })
+    });
+    if(!response.ok){
+      console.error('Flask error:', response.status);
+      setJarvisText('Bridge connection error, sir.');
+    }
+    return await response.json();
+  } catch(e){
+    console.error('Failed to send to Flask:', e);
+    setJarvisText('Cannot reach JARVIS bridge on port 5050, sir.');
+    return null;
+  }
+}
+
+async function pollChatHistory(){
+  try{
+    const response = await fetch(`${FLASK_URL}/history`);
+    if(response.ok){
+      const data = await response.json();
+      if(data.history && data.history.length > 0){
+        const lastMsg = data.history[data.history.length - 1];
+        if(lastMsg.role === 'jarvis' && lastMsg.text !== document.getElementById('jarvis-text')?.textContent){
+          setJarvisText(lastMsg.text);
+        }
+      }
+    }
+  } catch(e){
+    // Silently fail
+  }
+}
+
+function sendCmd(cmd){
+  document.getElementById('cmd-input').value = cmd;
+  submitCmd();
+}
+
+function submitCmd(){
+  const inputEl = document.getElementById('cmd-input');
+  const v = inputEl.value.trim();
+  if(!v) return;
+  inputEl.value = '';
+  setListening(true);
+  setTimeout(()=>setListening(false),800);
+  setJarvisText('Processing command, sir...');
+  sendToFlask(v);
+}
+
+// Enter key handler
+const cmdInput = document.getElementById('cmd-input');
+if(cmdInput){
+  cmdInput.addEventListener('keydown', e=>{
+    if(e.key==='Enter') submitCmd();
+  });
+}
+
+// ── BROWSER SPEECH RECOGNITION (FIXED & WORKING) ──
+let recognition = null;
+let isListening = false;
+
+function initBrowserSpeech() {
+    const browserMicBtn = document.getElementById('browser-mic-btn');
+    if (!browserMicBtn) return;
+    
+    // Check if browser supports speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        browserMicBtn.style.display = 'none';
+        console.warn('Browser does not support speech recognition');
+        return;
+    }
+    
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    recognition.maxAlternatives = 1;
+    
+    browserMicBtn.onclick = () => {
+        if (isListening) {
+            recognition.stop();
+            return;
+        }
+        
+        try {
+            recognition.start();
+            isListening = true;
+            browserMicBtn.classList.add('listening');
+            setJarvisText("🎙️ Listening... Speak now, sir.");
+            console.log('Speech recognition started');
+        } catch (e) {
+            console.error('Failed to start recognition:', e);
+            setJarvisText("Mic error. Try again, sir.");
+            browserMicBtn.classList.remove('listening');
+            isListening = false;
+        }
+    };
+    
+    recognition.onstart = () => {
+        console.log('Speech recognition active');
+        isListening = true;
+        browserMicBtn.classList.add('listening');
+    };
+    
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        console.log('Recognized:', transcript);
+        
+        // Capitalize first letter
+        const formattedText = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+        
+        // Put in input box
+        const inputBox = document.getElementById('cmd-input');
+        if (inputBox) {
+            inputBox.value = formattedText;
+        }
+        
+        // Auto-submit after a short delay (so user sees what was recognized)
+        setJarvisText(`You said: "${formattedText}"\nProcessing...`);
+        
+        setTimeout(() => {
+            submitCmd();
+        }, 500);
+    };
+    
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        let errorMsg = "Mic error, sir.";
+        
+        switch(event.error) {
+            case 'no-speech':
+                errorMsg = "No speech detected. Please try again, sir.";
+                break;
+            case 'audio-capture':
+                errorMsg = "No microphone found. Please check your mic, sir.";
+                break;
+            case 'not-allowed':
+                errorMsg = "Microphone access denied. Please allow mic access, sir.";
+                break;
+            case 'network':
+                errorMsg = "Network error. Check your connection, sir.";
+                break;
+        }
+        
+        setJarvisText(errorMsg);
+        browserMicBtn.classList.remove('listening');
+        isListening = false;
+    };
+    
+    recognition.onend = () => {
+        console.log('Speech recognition ended');
+        browserMicBtn.classList.remove('listening');
+        isListening = false;
+    };
+}
+
+// ── LEGACY PYTHON MIC BUTTON (kept for compatibility) ──
+let micActive = false;
+
+function toggleMic() {
+    micActive = !micActive;
+    const micBtn = document.getElementById('mic-btn');
+    if(micBtn) micBtn.classList.toggle('listening', micActive);
+    setListening(micActive);
+    if(!micActive) animateWave(false);
+    else {
+        setJarvisText("Python voice mode active. Say something...");
+        // Note: This sends a trigger to Python which should start listening
+        sendToFlask('__MIC_TRIGGER__');
+    }
+}
+
+const micBtn = document.getElementById('mic-btn');
+if(micBtn) {
+    micBtn.onclick = toggleMic;
+}
+
+// ── CLOCK & STATS ──
+function updateClock(){
+  const n=new Date();
+  const clockEl = document.getElementById('clock');
+  if(clockEl){
+    clockEl.textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+  }
+  const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const dateEl = document.getElementById('date-display');
+  if(dateEl){
+    dateEl.textContent=`${days[n.getDay()]} ${String(n.getDate()).padStart(2,'0')} ${months[n.getMonth()]} ${n.getFullYear()}`;
+  }
+}
+
+async function updateStats(){
+  try{
+    const response = await fetch(`${FLASK_URL}/status`);
+    if(response.ok){
+      const stats = await response.json();
+      
+      const cpuVal = document.getElementById('cpu-val');
+      const cpuBar = document.getElementById('cpu-bar');
+      if(cpuVal && cpuBar){
+        cpuVal.textContent = stats.cpu;
+        cpuBar.style.width = stats.cpu + '%';
+      }
+      
+      const ramVal = document.getElementById('ram-val');
+      const ramBar = document.getElementById('ram-bar');
+      if(ramVal && ramBar){
+        ramVal.textContent = stats.ram;
+        ramBar.style.width = stats.ram + '%';
+      }
+      
+      const batVal = document.getElementById('bat-val');
+      const batBar = document.getElementById('bat-bar');
+      if(batVal && batBar && stats.battery !== null){
+        batVal.textContent = stats.battery;
+        batBar.style.width = stats.battery + '%';
+        batBar.className = 'bar-fill ' + (stats.battery > 50 ? 'bar-green' : (stats.battery > 20 ? 'bar-gold' : 'bar-red'));
+      }
+      
+      // Check Ollama status
+      const ollamaDot = document.getElementById('ollama-dot');
+      const ollamaStatus = document.getElementById('ollama-status');
+      if(ollamaDot && ollamaStatus){
+        try{
+          const ollamaTest = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(2000) });
+          if(ollamaTest.ok){
+            ollamaDot.style.background = '#2ecc71';
+            ollamaDot.style.boxShadow = '0 0 6px #2ecc71';
+            ollamaStatus.textContent = 'CONNECTED';
+            ollamaStatus.style.color = '#2ecc71';
+          } else {
+            throw new Error('No response');
+          }
+        } catch(e){
+          ollamaDot.style.background = '#e74c3c';
+          ollamaStatus.textContent = 'OFFLINE';
+          ollamaStatus.style.color = '#e74c3c';
+        }
+      }
+    } else {
+      fallbackStats();
+    }
+  } catch(e){
+    console.warn('Flask status endpoint not ready, using fallback');
+    fallbackStats();
+  }
+}
+
+function fallbackStats(){
+  const cpu=Math.floor(Math.random()*30+15);
+  const ram=Math.floor(Math.random()*20+45);
+  const bat=Math.floor(Math.random()*5+72);
+  const cpuVal = document.getElementById('cpu-val');
+  const cpuBar = document.getElementById('cpu-bar');
+  if(cpuVal && cpuBar){
+    cpuVal.textContent=cpu;
+    cpuBar.style.width=cpu+'%';
+  }
+  const ramVal = document.getElementById('ram-val');
+  const ramBar = document.getElementById('ram-bar');
+  if(ramVal && ramBar){
+    ramVal.textContent=ram;
+    ramBar.style.width=ram+'%';
+  }
+  const batVal = document.getElementById('bat-val');
+  const batBar = document.getElementById('bat-bar');
+  if(batVal && batBar){
+    batVal.textContent=bat;
+    batBar.style.width=bat+'%';
+    batBar.className='bar-fill '+(bat>50?'bar-green':bat>20?'bar-gold':'bar-red');
+  }
+}
+
+async function checkFlaskBridge(){
+  try{
+    const response = await fetch(`${FLASK_URL}/status`, { signal: AbortSignal.timeout(2000) });
+    const modeTag = document.getElementById('mode-tag');
+    if(response.ok){
+      if(modeTag){
+        modeTag.textContent = 'ONLINE';
+        modeTag.style.color = '#2ecc71';
+      }
+    } else {
+      if(modeTag){
+        modeTag.textContent = 'BRIDGE ERROR';
+        modeTag.style.color = '#e74c3c';
+      }
+    }
+  } catch(e){
+    const modeTag = document.getElementById('mode-tag');
+    if(modeTag){
+      modeTag.textContent = 'BRIDGE OFFLINE';
+      modeTag.style.color = '#e74c3c';
+    }
+  }
+}
+
+setTimeout(() => {
+  checkFlaskBridge();
+  updateStats();
+}, 1000);
+</script>
+</body>
+</html>
